@@ -1780,6 +1780,12 @@ static int flash_nor_get_size(const struct device *dev, uint64_t *size)
 	return 0;
 }
 
+static int spi_nor_deinit(const struct device *dev)
+{
+	// TODO: Implement actual deinitialization...
+	return 0;
+}
+
 static DEVICE_API(flash, spi_nor_api) = {
 	.read = spi_nor_read,
 	.write = spi_nor_write,
@@ -1921,7 +1927,7 @@ static DEVICE_API(flash, spi_nor_api) = {
 	LOCK_DEFINE(idx)							\
 	GENERATE_CONFIG_STRUCT(idx)						\
 	static struct spi_nor_data spi_nor_##idx##_data;			\
-	DEVICE_DT_INST_DEFINE(idx, &spi_nor_init, PM_DEVICE_DT_INST_GET(idx),	\
+	DEVICE_DT_INST_DEINIT_DEFINE(idx, &spi_nor_init, &spi_nor_deinit, PM_DEVICE_DT_INST_GET(idx),	\
 			&spi_nor_##idx##_data, &spi_nor_##idx##_config,		\
 			POST_KERNEL, CONFIG_SPI_NOR_INIT_PRIORITY, &spi_nor_api);
 
