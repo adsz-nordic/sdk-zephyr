@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+source "common.sh"
+
+cmd "west build -p -b nrf52840dk/nrf52840 -- -DEXTRA_CONF_FILE='overlay-serial.conf'"
