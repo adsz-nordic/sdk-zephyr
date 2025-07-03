@@ -24,6 +24,8 @@ LOG_MODULE_REGISTER(smp_sample);
 
 #include "common.h"
 
+#include <app_version.h>
+
 #define STORAGE_PARTITION_LABEL	storage_partition
 #define STORAGE_PARTITION_ID	FIXED_PARTITION_ID(STORAGE_PARTITION_LABEL)
 
@@ -84,6 +86,7 @@ int main(void)
 	 * compile which is convenient when testing firmware upgrade.
 	 */
 	LOG_INF("build time: " __DATE__ " " __TIME__);
+	LOG_INF("adsz: smp_svr app version %d", APP_VERSION_MAJOR);
 
 	/* The system work queue handles all incoming mcumgr requests.  Let the
 	 * main thread idle while the mcumgr server runs.

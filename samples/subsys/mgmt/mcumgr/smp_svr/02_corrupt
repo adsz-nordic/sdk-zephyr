@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+source "common.sh"
+
+MANIPULATION_ADDRESS="0xC200"
+MANIPULATION_DATA="0xFFFFFFFF"
+
+cmd "nrfutil device x-write --address ${MANIPULATION_ADDRESS} --value ${MANIPULATION_DATA}"
