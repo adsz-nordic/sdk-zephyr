@@ -253,6 +253,57 @@ typedef void (* ISR)(const void *);
 
         fp.write("};\n")
 
+    def write_isr_function_switch(self, fp):
+        fp.write("void __sw_isr_table ")
+        fp.write("get_isr_entry(int irq_index, struct _isr_table_entry *entry)\n")
+        fp.write("{\n")
+        fp.write("\tswitch (irq_index)\n")
+        fp.write("\t{\n")
+
+    def write_isr_function_case(self, fp, i, isr, arg):
+        fp.write(f"\t\tcase {i}:\n")
+        fp.write("\t\t{\n")
+        fp.write(f"\t\t\tentry->isr = (ISR){isr:#x};\n")
+        fp.write(f"\t\t\tentry->arg = (const void *){arg};\n")
+        fp.write("\t\t\tbreak;\n")
+        fp.write("\t\t}\n")
+
+    def write_isr_function_case_single_irq(self, fp, i):
+        arg = f"{self.__swt[i][0][0]:#x}"
+        isr = self.__swt[i][0][1]
+        self.write_isr_function_case(fp, i, isr, arg)
+
+    def write_isr_function_case_shared_irq(self, fp, i):
+        arg = f"&z_shared_sw_isr_table[{i}]"
+        isr = self.__config.swt_shared_handler
+        self.write_isr_function_case(fp, i, isr, arg)
+
+    def write_isr_function_default(self, fp):
+        fp.write("\t\tdefault:\n")
+        fp.write("\t\t{\n")
+        fp.write(f"\t\t\tentry->isr = (ISR){self.__config.swt_spurious_handler};\n")
+        fp.write("\t\t\tentry->arg = (const void *)0x0;\n")
+        fp.write("\t\t\tbreak;\n")
+        fp.write("\t\t}\n")
+        fp.write("\t}\n")
+        fp.write("}\n")
+
+    def write_isr_function(self, fp):
+        self.write_isr_function_switch(fp)
+
+        for i in range(self.__nv):
+            if len(self.__swt[i]) == 0:
+                # Unused interrupt - default will be used
+                continue
+            elif len(self.__swt[i]) == 1:
+                # Single interrupt
+                self.write_isr_function_case_single_irq(fp, i)
+            else:
+                # Shared interrupt
+                self.write_isr_function_case_shared_irq(fp, i)
+
+        self.write_isr_function_default(fp)
+
     def write_source(self, fp):
         fp.write(self.source_header)
 
@@ -270,36 +321,5 @@ typedef void (* ISR)(const void *);
         if not self.__swt:
             return
 
-        if not self.__config.check_sym("CONFIG_DYNAMIC_INTERRUPTS"):
-            fp.write("const ")
-        fp.write(f"struct _isr_table_entry __sw_isr_table _sw_isr_table[{self.__nv}] = {{\n")
-
-        level2_offset = self.__config.get_irq_baseoffset(2)
-        level3_offset = self.__config.get_irq_baseoffset(3)
-
-        for i in range(self.__nv):
-            if len(self.__swt[i]) == 0:
-                # Not used interrupt
-                param = "0x0"
-                func = self.__config.swt_spurious_handler
-            elif len(self.__swt[i]) == 1:
-                # Single interrupt
-                param = f"{self.__swt[i][0][0]:#x}"
-                func = self.__swt[i][0][1]
-            else:
-                # Shared interrupt
-                param = f"&z_shared_sw_isr_table[{i}]"
-                func = self.__config.swt_shared_handler
-
-            if isinstance(func, int):
-                func_as_string = f"{func:#x}"
-            else:
-                func_as_string = func
-
-            if level2_offset is not None and i == level2_offset:
-                fp.write(f"\t/* Level 2 interrupts start here (offset: {level2_offset}) */\n")
-            if level3_offset is not None and i == level3_offset:
-                fp.write(f"\t/* Level 3 interrupts start here (offset: {level3_offset}) */\n")
-
-            fp.write(f"\t{{(const void *){param}, (ISR){func_as_string}}}, /* {i} */\n")
-        fp.write("};\n")
+        fp.write("\n")
+        self.write_isr_function(fp)
