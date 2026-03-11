@@ -44,11 +44,15 @@ struct _isr_table_entry {
 /* The software ISR table itself, an array of these structures indexed by the
  * irq line
  */
+#ifdef CONFIG_GEN_SW_ISR_FUNCTION
+extern void __sw_isr_table get_isr_entry(int irq_number, struct _isr_table_entry *entry);
+#else /* CONFIG_GEN_SW_ISR_FUNCTION */
 extern
 #ifndef CONFIG_DYNAMIC_INTERRUPTS
 const
 #endif
 struct _isr_table_entry _sw_isr_table[];
+#endif /* CONFIG_GEN_SW_ISR_FUNCTION */
 
 struct _irq_parent_entry {
 	const struct device *dev;

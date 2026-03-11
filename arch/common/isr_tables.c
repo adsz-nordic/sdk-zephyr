@@ -87,6 +87,13 @@ const uintptr_t __irq_vector_table _irq_vector_table[IRQ_TABLE_SIZE] = {
 /* If there are no interrupts at all, or all interrupts are of the 'direct'
  * type and bypass the _sw_isr_table, then do not generate one.
  */
+#ifdef CONFIG_GEN_SW_ISR_FUNCTION
+void __sw_isr_table get_isr_entry(int irq_number, struct _isr_table_entry *entry)
+{
+	entry->arg = (const void *)0x0;
+	entry->isr = z_irq_spurious;
+}
+#else /* CONFIG_GEN_SW_ISR_FUNCTION */
 #ifdef CONFIG_GEN_SW_ISR_TABLE
 #ifndef CONFIG_DYNAMIC_INTERRUPTS
 const
@@ -96,6 +103,7 @@ struct _isr_table_entry __sw_isr_table _sw_isr_table[IRQ_TABLE_SIZE] = {
 				       &z_irq_spurious},
 };
 #endif
+#endif /* CONFIG_GEN_SW_ISR_FUNCTION */
 
 #ifdef CONFIG_SHARED_INTERRUPTS
 #ifndef CONFIG_DYNAMIC_INTERRUPTS

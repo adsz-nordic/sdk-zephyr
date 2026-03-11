@@ -578,6 +578,14 @@ config GEN_SW_ISR_TABLE
 	  _isr_table_entry containing the interrupt service routine and supplied
 	  parameter.
 
+config GEN_SW_ISR_FUNCTION
+	bool "Generate a software ISR function"
+	depends on GEN_ISR_TABLES
+	depends on !PLIC
+	help
+	  Use a function containing switch-case instead of a full table.
+	  This helps to limit binary size when most of the IRQs are not used.
+
 config ARCH_SW_ISR_TABLE_ALIGN
 	int "Alignment size of a software ISR table"
 	default 64 if RISCV_HAS_CLIC
