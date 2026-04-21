@@ -53,3 +53,13 @@
 &gpio2 {
 	status = "okay";
 };
+
+/* NOTE: Two jumpers need to be used on nrf54l15dk:
+* - P1.8 with P1.9
+* - P2.8 with P2.9 */
+/ {
+    zephyr,user {
+        miso-gpios = <&gpio2 9 GPIO_ACTIVE_HIGH>;
+        mosi-gpios = <&gpio2 8 GPIO_ACTIVE_HIGH>;
+    };
+};
